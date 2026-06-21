@@ -1,0 +1,8 @@
+fastapi>=0.110
+uvicorn[standard]>=0.27
+pydantic>=2.6
+transformers>=4.40
+torch>=2.0
+pysbd>=0.3.4
+biopython>=1.83
+python-multipart>=0.0.9
