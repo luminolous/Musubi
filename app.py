@@ -17,11 +17,15 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
+from src.entrez import search_pubmed
 from src.ner import DEVICE, get_predictor
 from src.pipeline import aggregate_comentions, split_sentences
 from src.schemas import (
     AnalyzeRequest,
     AnalyzeResponse,
+    PubMedAbstract,
+    PubMedSearchRequest,
+    PubMedSearchResponse,
     Span,
     Stats,
 )
@@ -136,4 +140,17 @@ def analyze(req: AnalyzeRequest) -> AnalyzeResponse:
 
     return AnalyzeResponse(
         nodes=nodes, edges=edges, evidence=evidence, stats=stats
+    )
+
+
+@app.post("/pubmed-search", response_model=PubMedSearchResponse)
+def pubmed_search(req: PubMedSearchRequest) -> PubMedSearchResponse:
+    try:
+        results = search_pubmed(req.query, req.max_results)
+    except ValueError as e:
+        raise HTTPException(503, str(e))
+    except Exception as e:
+        raise HTTPException(503, f"PubMed fetch failed: {e}")
+    return PubMedSearchResponse(
+        abstracts=[PubMedAbstract(**r) for r in results]
     )
