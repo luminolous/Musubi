@@ -1,5 +1,5 @@
----
-title: Musubi
+<!-- ---
+title: Musubi (結び)
 emoji: 🧬
 colorFrom: indigo
 colorTo: purple
@@ -7,58 +7,94 @@ sdk: docker
 app_port: 7860
 pinned: false
 license: mit
+--- -->
+
+<div align="center">
+
+# Musubi (結び)
+
+Extract biomedical entities from PubMed abstracts and map their co-mentions as an interactive graph.
+
+[![Python](https://img.shields.io/badge/Python-3.11-3776AB?style=flat&logo=python&logoColor=white)](https://www.python.org/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.110+-009688?style=flat&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
+[![PyTorch](https://img.shields.io/badge/PyTorch-CPU-EE4C2C?style=flat&logo=pytorch&logoColor=white)](https://pytorch.org/)
+[![Docker](https://img.shields.io/badge/Docker-ready-2496ED?style=flat&logo=docker&logoColor=white)](Dockerfile)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+
+[**Live demo**](https://lumicero-musubi.hf.space/) · [Report an issue](https://github.com/luminolous/musubi/issues)
+
+<br />
+
+<!-- <img src="docs/preview/app.png" alt="Musubi graph showing co-mention edges between Virus, Gene, Chemical, and Disease entities" width="820" /> -->
+
+</div>
+
 ---
-
-# Musubi 🧬
-
-> *Tying entities into hypotheses.*
 
 ## About
 
-Musubi extracts four biomedical entity types — **Chemical, Disease, Virus, Gene** — from PubMed abstracts and visualizes their sentence-level co-mentions as an interactive graph. It is designed as a hypothesis filter for **virus-centric drug repurposing**, where pairs like *Virus–Chemical*, *Virus–Gene*, or *Chemical–Disease* hint at candidate drugs, molecular targets, or therapeutic indications.
+Musubi runs biomedical named entity recognition on PubMed abstracts and draws a graph where each edge is a sentence in which two entities appear together. It is built around virus-centric drug repurposing: a Virus-Chemical edge might point to a candidate drug, a Virus-Gene edge to a molecular target, a Chemical-Disease edge to a known or speculative indication.
 
-Co-mention is *not* causal evidence — two entities sharing a sentence does not prove a biological relationship. But the literature is large, and co-mention is a cheap filter for "which pairs are worth a human reading." Musubi surfaces those pairs and the exact sentences they appear in, so every edge in the graph is one click away from the original wording.
+Co-mention is not causal evidence. Two entities in the same sentence may have nothing to do with each other. The graph is a filter, not a conclusion. Every edge links back to the original sentence so you can read the wording before deciding whether the pair is worth following up.
 
-Powered by [`lumicero/Joint-Uniform-BioNER`](https://huggingface.co/lumicero/Joint-Uniform-BioNER), a PubMedBERT-based joint NER model trained on a uniformized merge of BC5CDR, NCBI Disease, BC2GM, and a virus subset.
+The model is [`lumicero/Joint-Uniform-BioNER`](https://huggingface.co/lumicero/Joint-Uniform-BioNER), a PubMedBERT token classifier trained on a merged corpus of BC5CDR, NCBI Disease, BC2GM, and a curated virus dataset.
 
-## How to use
+## Features
 
-1. **Paste abstracts** into the textarea (separate multiple abstracts with a blank line), or click **PubMed search** to fetch them by query.
-2. **Click Analyze.** The graph appears in the canvas: nodes are entities (colored by type — Chemical/Disease/Virus/Gene), edges are co-mentions (thicker = more contexts).
-3. **Explore.** Click a node to highlight its neighbors. Click an edge to open the evidence panel with the original sentences and entity highlights. Use the confidence slider, pair-type filter, and granularity toggle to refine the view.
+- Named entity recognition across four types: Chemical, Disease, Virus, and Gene.
+- Sentence-level or abstract-level co-mention aggregation, with a confidence threshold slider that re-runs inference on release.
+- Force-directed graph via vis-network. Node size scales with mention count; edge thickness scales with co-mention frequency. Click a node to dim everything outside its neighborhood; click an edge to read the source sentences with entity spans highlighted.
+- PubMed search via NCBI Entrez. Enter a query, choose a result count, and the abstracts load directly into the input area.
+- Entity normalization that groups surface variants under a shared key and displays the most frequent form as the node label.
+- Pair-type filter (Chemical-Disease, Gene-Virus, etc.) that updates the graph without re-running inference.
 
-**Try these PubMed queries:**
+## Tech stack
 
-- `SARS-CoV-2 ACE2 spike`
-- `hepatitis C ribavirin sofosbuvir`
-- `HIV reverse transcriptase zidovudine`
+| Layer | Choice | Why |
+|-------|--------|-----|
+| Frontend | HTML, Tailwind CSS CDN, vis-network CDN, vanilla JS | No build step. A single HTML file with two CDN script tags. |
+| Backend | FastAPI, uvicorn | Clean request validation with pydantic, minimal setup. |
+| NER | transformers + PyTorch (CPU) | PubMedBERT token classifier loaded directly from Hugging Face Hub. |
+| Sentence splitting | pysbd | More reliable on biomedical abbreviations than basic regex. |
+| PubMed | biopython Entrez | Covers esearch and efetch without needing a raw HTTP client. |
+| Deploy | Docker, Hugging Face Space (CPU basic) | Free tier with the model cache persisting between requests. |
 
-## Configuration
+## Project layout
 
-### `ENTREZ_EMAIL` (required for PubMed search)
-
-The `POST /pubmed-search` endpoint uses NCBI Entrez, which requires an email address on every request (NCBI uses it to contact you if your usage pattern overloads their servers, and to enforce per-user rate limits).
-
-- **Local dev**: `export ENTREZ_EMAIL=you@example.com` before launching uvicorn.
-- **Hugging Face Space**: add `ENTREZ_EMAIL` as a Space secret under *Settings → Variables and secrets*.
-
-If unset, `/pubmed-search` returns `503` with a clear message — the rest of the app keeps working, you just have to paste abstracts manually.
+```
+app.py              FastAPI entry point, all routes
+src/
+  ner.py            model loading, batched inference, BIO span decoding
+  pipeline.py       sentence splitting and co-mention aggregation
+  normalize.py      entity key normalization and display label selection
+  entrez.py         PubMed fetch via biopython Entrez
+  schemas.py        pydantic v2 request and response models
+static/
+  index.html        single-page app
+  style.css         dark theme, entity highlight colors
+  app.js            graph rendering, evidence panel, PubMed modal
+Dockerfile
+requirements.txt
+```
 
 ## Limitations
 
-- **Co-mention ≠ causation.** Two entities in the same sentence may or may not be biologically related. Treat the graph as a hypothesis filter, not as evidence.
-- **CPU throughput.** Inference runs on a free-tier CPU (2 vCPU). Expect ~0.3 s per sentence; very large batches will feel slow. Hard cap: 50 abstracts or 500 sentences per request.
-- **Naive entity normalization.** Surface forms are grouped by a simple lowercase + alphanumeric key (`SARS-CoV-2` → `sarscov2`, `ACE-2` → `ace2`). There is no linking to external ontologies (MeSH, NCBI Taxonomy, HGNC), so genuinely distinct entities that collapse to the same key would merge.
-- **Model coverage.** The underlying model is conservative on some entity surfaces (e.g. may tag only part of a complex token like `SARS-CoV-2`) and may miss low-frequency synonyms. Lowering the confidence slider widens recall at the cost of precision.
+Co-mention is not causation. Two entities in the same sentence may appear together only to say they are unrelated, or the sentence may describe a negative result. Read the evidence behind each edge before drawing conclusions.
 
-## Citation
+Inference runs on a free CPU tier (2 vCPU). Expect roughly 0.3 seconds per sentence. The app rejects requests that exceed 50 abstracts or 500 sentences.
 
-> _Citation placeholder. A paper is in preparation; once published it will be linked here._
+Entity normalization uses a simple lowercase-and-strip key. There is no linking to external ontologies like MeSH, NCBI Taxonomy, or HGNC, so two names for the same entity that produce different keys will appear as separate nodes.
+
+The model is conservative on some complex surface forms. It may tag only part of a multi-token name. Lowering the confidence slider widens recall at the cost of precision.
 
 ## Acknowledgments
 
 - Model: [`lumicero/Joint-Uniform-BioNER`](https://huggingface.co/lumicero/Joint-Uniform-BioNER)
-- Training datasets: BC5CDR, NCBI Disease, BC2GM, and a curated virus subset from PubMed
-- Literature source: PubMed via NCBI Entrez
+- Training data: BC5CDR, NCBI Disease, BC2GM, curated virus corpus from PubMed
+- Literature source: PubMed via [NCBI Entrez](https://www.ncbi.nlm.nih.gov/books/NBK25501/)
 - Sentence splitter: [pysbd](https://github.com/nipunsadvilkar/pySBD)
 - Graph rendering: [vis-network](https://visjs.org/)
+
+## License
+
+Released under the MIT license. See [LICENSE](LICENSE).
