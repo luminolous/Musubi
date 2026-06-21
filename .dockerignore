@@ -1,0 +1,17 @@
+.git
+.gitignore
+.github
+.agents
+__pycache__
+*.pyc
+.venv
+venv
+.env
+.pytest_cache
+.ruff_cache
+.DS_Store
+.uvicorn.log
+notebooks
+*.ipynb
+PUSH_INSTRUCTIONS.md
+README.md.bak
