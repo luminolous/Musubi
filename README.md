@@ -1,4 +1,4 @@
-<!-- ---
+---
 title: Musubi (結び)
 emoji: 🧬
 colorFrom: indigo
@@ -7,7 +7,8 @@ sdk: docker
 app_port: 7860
 pinned: false
 license: mit
---- -->
+short_description: Extract biomedical entities from PubMed abstracts and map their co-mentions as an interactive graph.
+---
 
 <div align="center">
 
