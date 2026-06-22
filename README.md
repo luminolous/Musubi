@@ -26,7 +26,7 @@ Extract biomedical entities from PubMed abstracts and map their co-mentions as a
 
 <br />
 
-<!-- <img src="docs/preview/app.png" alt="Musubi graph showing co-mention edges between Virus, Gene, Chemical, and Disease entities" width="820" /> -->
+<img src="docs/preview.png" alt="Musubi graph showing co-mention edges between Virus, Gene, Chemical, and Disease entities" width="820" />
 
 </div>
 
