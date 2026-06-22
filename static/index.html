@@ -13,16 +13,13 @@
   <div class="flex flex-col h-full">
     <!-- Header -->
     <header class="flex items-center justify-between px-5 py-3 border-b border-slate-700/60">
-      <div class="flex items-center gap-3">
-        <span class="text-2xl">🧬</span>
-        <div>
-          <h1 class="text-xl font-semibold text-violet-300">Musubi</h1>
-          <p class="text-xs text-slate-400">Tying entities into hypotheses.</p>
-        </div>
+      <div>
+        <h1 class="text-xl font-semibold text-violet-300 tracking-tight">Musubi <span class="text-slate-400 font-normal">(結び)</span></h1>
+        <p class="text-xs text-slate-500">Tying entities into hypotheses.</p>
       </div>
       <button id="btnPubmed"
-        class="px-3 py-1.5 rounded-md bg-violet-600/80 hover:bg-violet-500 text-sm text-white">
-        🔎 PubMed search
+        class="px-3 py-1.5 rounded-md border border-violet-500/40 hover:border-violet-400 hover:bg-violet-500/10 text-sm text-violet-200 transition-colors">
+        PubMed search
       </button>
     </header>
 
@@ -56,10 +53,10 @@
           <label class="block text-xs font-medium text-slate-400 mb-1">Granularity</label>
           <div class="flex gap-2">
             <label class="flex items-center gap-1 text-sm">
-              <input type="radio" name="gran" value="sentence" checked class="accent-violet-500" /> Sentence
+              <input type="radio" name="gran" value="sentence" class="accent-violet-500" /> Sentence
             </label>
             <label class="flex items-center gap-1 text-sm">
-              <input type="radio" name="gran" value="abstract" class="accent-violet-500" /> Abstract
+              <input type="radio" name="gran" value="abstract" checked class="accent-violet-500" /> Abstract
             </label>
           </div>
         </div>
@@ -79,8 +76,10 @@
 
       <!-- Graph + Evidence -->
       <section class="flex flex-col flex-1 min-w-0">
-        <div id="graph" class="flex-1 relative">
-          <div id="placeholder" class="absolute inset-0 flex items-center justify-center text-slate-500 text-sm">
+        <div class="flex-1 relative">
+          <div id="graph" class="absolute inset-0"></div>
+          <div id="placeholder"
+            class="absolute inset-0 flex items-center justify-center text-slate-500 text-sm pointer-events-none">
             Paste abstracts and click <span class="mx-1 px-2 py-0.5 rounded bg-slate-800 text-violet-300">Analyze</span> to see the graph.
           </div>
         </div>

@@ -15,7 +15,7 @@ const state = {
   filters: {
     pairTypes: new Set(),  // empty = show all
     minConfidence: 0.5,
-    granularity: "sentence",
+    granularity: "abstract",
   },
 };
 
@@ -24,6 +24,7 @@ const $ = (id) => document.getElementById(id);
 
 function show(el, on = true) {
   if (typeof el === "string") el = $(el);
+  if (!el) return;
   el.classList.toggle("hidden", !on);
 }
 
