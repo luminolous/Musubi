@@ -7,7 +7,7 @@ sdk: docker
 app_port: 7860
 pinned: false
 license: mit
-short_description: Extract biomedical entities from PubMed abstracts and map their co-mentions as an interactive graph.
+short_description: Visualize entity relationship from PubMed abstracts.
 ---
 
 <div align="center">
